@@ -222,7 +222,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
 
     # 开始训练和测试
-    num_epochs = 1
+    num_epochs = 20
     pth = './moder/resnet50_cifar10.pth'
     if not os.path.exists(pth):
         for epoch in range(num_epochs):
@@ -237,4 +237,5 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(pth))
         test_loss, test_acc = test(model, test_loader, criterion)
         print(f"Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}")
-        predict(model, './data/horse.jpg')
+
+    predict(model, './data/horse.jpg')
