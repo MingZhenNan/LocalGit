@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+from PIL import Image
 
 # 定义ResNet块
 from torchvision.transforms import Compose
@@ -161,6 +162,48 @@ def test(model, data_loader, criterion):
     return test_loss, test_acc
 
 
+def match_filename(filename, str_list):
+    filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+    filename_without_path = filename_without_extension.split("/")[-1]
+    for i in range(len(str_list)):
+        if str_list[i] in filename_without_path:
+            return i
+    return "error"
+
+
+def predict(model, img_pth):
+    # 加载已经训练好的PyTorch模型
+    model.eval()
+    labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+    # 定义用于对输入图片进行预处理的变换
+    transform = transforms.Compose([
+        transforms.Resize(32),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+    ])
+
+    # 加载输入图片
+    img = Image.open(img_pth)
+
+    # 对输入图片进行预处理
+    img_tensor = transform(img)
+
+    # 将输入图片放入模型中进行预测
+    with torch.no_grad():
+        img_tensor = img_tensor.cuda()
+        output = model(img_tensor.unsqueeze(0)).cuda()
+
+    # 将输出转换为类别概率，并找到概率最大的类别
+    probabilities = torch.softmax(output, dim=1)[0]
+    predicted_class = torch.argmax(probabilities)
+
+    Actualclass = match_filename(img_pth, labels)
+    # 打印预测结果
+    print('Predicted class:', labels[predicted_class.item()])
+    print('Actual class:', labels[Actualclass])
+
+
 if __name__ == '__main__':
     transform_train = Compose([transforms.ToTensor(),
                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -194,3 +237,4 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(pth))
         test_loss, test_acc = test(model, test_loader, criterion)
         print(f"Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}")
+        predict(model, './data/horse.jpg')
