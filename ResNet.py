@@ -14,15 +14,18 @@ class ResNetBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1):
         super(ResNetBlock, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_channels, out_channels,
+                               kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
 
         if stride != 1 or in_channels != out_channels:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
+                nn.Conv2d(in_channels, out_channels, kernel_size=1,
+                          stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels))
         else:
             self.shortcut = nn.Sequential()
@@ -52,7 +55,8 @@ class ResNet(nn.Module):
 
         self.in_channels = 64
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
+                               stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
 
@@ -154,7 +158,8 @@ def test(model, data_loader, criterion):
             loss = criterion(outputs, targets)
 
             test_loss += loss.item() * inputs.size(0)
-            test_acc += torch.sum(torch.argmax(outputs, dim=1) == targets).item()
+            test_acc += torch.sum(torch.argmax(outputs,
+                                  dim=1) == targets).item()
 
         test_loss /= len(data_loader.dataset)
         test_acc /= len(data_loader.dataset)
@@ -163,7 +168,8 @@ def test(model, data_loader, criterion):
 
 
 def match_filename(filename, str_list):
-    filename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+    filename_without_extension = os.path.splitext(
+        os.path.basename(filename))[0]
     filename_without_path = filename_without_extension.split("/")[-1]
     for i in range(len(str_list)):
         if str_list[i] in filename_without_path:
@@ -174,7 +180,8 @@ def match_filename(filename, str_list):
 def predict(model, img_pth):
     # 加载已经训练好的PyTorch模型
     model.eval()
-    labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+    labels = ['airplane', 'automobile', 'bird', 'cat',
+              'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
     # 定义用于对输入图片进行预处理的变换
     transform = transforms.Compose([
@@ -209,25 +216,32 @@ if __name__ == '__main__':
                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     transform_test = Compose([transforms.ToTensor(),
                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+    train_set = datasets.CIFAR10(
+        root='./data', train=True, download=True, transform=transform_train)
+    test_set = datasets.CIFAR10(
+        root='./data', train=False, download=True, transform=transform_test)
 
     # 定义数据加载器
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size=128, shuffle=True, num_workers=2)
-    test_loader = torch.utils.data.DataLoader(test_set, batch_size=128, shuffle=False, num_workers=2)
+    train_loader = torch.utils.data.DataLoader(
+        train_set, batch_size=128, shuffle=True, num_workers=2)
+    test_loader = torch.utils.data.DataLoader(
+        test_set, batch_size=128, shuffle=False, num_workers=2)
 
     # 定义模型、损失函数和优化器
-    model = resnet50(num_classes=10).cuda()
+    model = resnet18(num_classes=10).cuda()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+    optimizer = optim.SGD(model.parameters(), lr=0.1,
+                          momentum=0.9, weight_decay=5e-4)
 
     # 开始训练和测试
-    num_epochs = 20
-    pth = './moder/resnet50_cifar10.pth'
+    num_epochs = 1
+    pth = './moder/resnet18_cifar10.pth'
     if not os.path.exists(pth):
         for epoch in range(num_epochs):
-            train_loss, train_acc = train(model, train_loader, criterion, optimizer)
-            print(f"Epoch [{epoch + 1}/{num_epochs}] \n Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
+            train_loss, train_acc = train(
+                model, train_loader, criterion, optimizer)
+            print(
+                f"Epoch [{epoch + 1}/{num_epochs}] \n Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
 
             test_loss, test_acc = test(model, test_loader, criterion)
             print(f" Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}")
